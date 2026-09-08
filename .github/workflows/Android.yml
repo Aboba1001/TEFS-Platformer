@@ -65,7 +65,7 @@ jobs:
               <path id="ANDROID_NDK_ROOT" value="${ANDROID_HOME}/ndk/21.4.7075529" />
               <path id="JAVA_HOME" value="${JAVA_HOME}" />
             </section>
-            <define id="android" />
+            <define name="android" />
           </config>
           EOF
 
