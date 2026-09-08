@@ -1,74 +1,79 @@
-name: CI
+name: Build Android
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  androidBuild:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [release, debug]
+  buildAndroid:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r21e
-
-      - name: Setup Java JDK
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
         with:
           haxe-version: 4.2.5
 
-      - name: Install Haxelibs
+      - name: Cache haxelib
+        uses: actions/cache@v4
+        with:
+          path: C:\haxelib
+          key: haxelib-${{ runner.os }}-${{ hashFiles('haxelib.json', 'Project.xml') }}
+          restore-keys: |
+            haxelib-${{ runner.os }}-
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
         run: |
-          haxelib --quiet install lime 7.9.0
-          haxelib --quiet install openfl 9.1.0
-          haxelib --quiet install flixel 4.11.0
-          haxelib --quiet install flixel-ui 2.5.0
-          haxelib --quiet install flixel-addons 3.0.2
-          haxelib --quiet install hxcpp 4.3.0
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;21.4.7075529"
+        shell: cmd
+
+      - name: Install Haxelib
+        run: |
+          haxelib setup C:\haxelib
+          haxelib install lime 7.9.0 --quiet
+          haxelib install openfl 9.1.0 --quiet
+          haxelib install flixel 4.11.0 --quiet
+          haxelib install flixel-ui 2.5.0 --quiet
+          haxelib install flixel-addons 3.0.2 --quiet
+          haxelib install hxcpp 4.3.0 --quiet
+          haxelib install android6permissions 0.2.1 --quiet
+          haxelib set flixel 4.11.0
           haxelib set lime 7.9.0
           haxelib set openfl 9.1.0
-          haxelib set flixel 4.11.0
+        shell: cmd
 
-      - name: Configure Lime Target
+      - name: Configure Lime Android Environment
         run: |
-          mkdir -p ~/.lime
-          cat << EOF > ~/.lime/config.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <config>
-            <section id="android">
-              <path id="ANDROID_SDK" value="${ANDROID_HOME}" />
-              <path id="ANDROID_NDK_ROOT" value="${{ steps.setup-ndk.outputs.ndk-path }}" />
-              <path id="JAVA_HOME" value="${JAVA_HOME}" />
-            </section>
-            <define name="android" />
-          </config>
-          EOF
+          haxelib run lime setup -alias -y
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_HOME
+          haxelib run lime config JAVA_HOME $JAVA_HOME
+          haxelib run lime config ANDROID_SETUP
+          haxelib list
+        env:
+          ANDROID_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+        shell: cmd
 
       - name: Compile
-        env:
-          ANDROID_SDK: ${{ env.ANDROID_HOME }}
-          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
-        run: haxelib run lime build android -${{ matrix.arch }} -Dno-pch
+        run: haxelib run lime build android -final
+        shell: cmd
 
-      - name: Publish Artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: androidBuild-${{ matrix.arch }}
-          path: export/${{ matrix.arch }}/android/bin/app/build/outputs/apk/${{ matrix.arch }}/*.apk
+          name: androidBuild
+          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
