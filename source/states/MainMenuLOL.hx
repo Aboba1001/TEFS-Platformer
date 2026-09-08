@@ -1,6 +1,10 @@
 package states;
 
+#if (flixel >= "5.0.0")
 import flixel.sound.FlxSound;
+#else
+import flixel.system.FlxSound;
+#end
 import lime.system.System;
 import flixel.FlxSprite;
 import flixel.text.FlxText;
