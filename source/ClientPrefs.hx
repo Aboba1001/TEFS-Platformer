@@ -27,9 +27,11 @@ class ClientPrefs {
     }
 
     public static function onLoad() {
+        #if !mobile
         if (FlxG.save.data.fullscreen != null) {
             fullscreen = FlxG.save.data.fullscreen;
         }
+        #end
         if (FlxG.save.data.showFPS != null) {
             showFPS = FlxG.save.data.showFPS;
             if (Main.fpsVar != null) {
