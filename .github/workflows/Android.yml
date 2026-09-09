@@ -1,4 +1,4 @@
-name: Android Build
+name: Android Build (Modern)
 
 on:
   push:
@@ -20,53 +20,30 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
         with:
-          haxe-version: '4.2.5'
+          haxe-version: '4.3.6' # Upgraded Haxe to stable 4.3
 
       - name: Install Haxelib
         run: |
           haxelib setup ~/haxelib
-          if [ -f haxelib.json ]; then
-            haxelib install haxelib.json --always
-          else
-          haxelib install lime 7.9.0 --quiet
-          haxelib install openfl 9.1.0 --quiet
-          haxelib install flixel 4.11.0 --quiet
-          haxelib install flixel-ui 2.5.0 --quiet
-          haxelib install flixel-addons 3.0.2 --quiet
-          haxelib install hxcpp 4.2.1 --quiet
-          haxelib install android6permissions 0.2.1 --quiet
-          haxelib set flixel 4.11.0
-          haxelib set lime 7.9.0
-          haxelib set openfl 9.1.0
-          fi
+          # Pulls the absolute newest stable versions of the toolchain
+          haxelib install lime --quiet
+          haxelib install openfl --quiet
+          haxelib install flixel --quiet
+          haxelib install flixel-ui --quiet
+          haxelib install flixel-addons --quiet
+          haxelib install hxcpp --quiet
+          haxelib install android6permissions --quiet
 
-      - name: Setup Lime and Android Tools
+      - name: Setup Lime and Android
         run: |
           haxelib run lime setup
-          haxelib run lime setup android -- --ANDROID_SDK=/usr/local/lib/android/sdk --ANDROID_NDK_DIR=/usr/local/lib/android/sdk/ndk/21.4.7075529 --JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-amd64
-          haxelib run lime config ANDROID_NDK /usr/local/lib/android/sdk/ndk/21.4.7075529
-          haxelib run lime config ANDROID_NDK_ROOT /usr/local/lib/android/sdk/ndk/21.4.7075529
-          haxelib run lime config JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64
-          haxelib run lime config ANDROID_SETUP true
+          echo -e "\n\n" | haxelib run lime setup android
 
       - name: Compile
         run: |
-          haxelib run lime build android -release -D64 -DHXCPP_ARM64
-        env:
-          ANDROID_SDK: /usr/local/lib/android/sdk
-          ANDROID_NDK_ROOT: /usr/local/lib/android/sdk/ndk/21.4.7075529
-          JAVA_HOME: /usr/lib/jvm/temurin-11-jdk-amd64
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-release-apk
-          path: |
-            export/android/bin/app/build/outputs/apk/release/*.apk
-            export/release/android/bin/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          haxelib run lime build android -release
