@@ -35,7 +35,9 @@ jobs:
           haxelib install flixel --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-addons --quiet
-          haxelib install hxcpp --quiet
+          # Using 4.2.1 completely avoids the modern Linux path parsing bugs introduced in hxcpp 4.3.2
+          haxelib install hxcpp 4.2.1 --quiet
+          haxelib set hxcpp 4.2.1
           haxelib install android6permissions --quiet
 
       - name: Setup Lime and Android Tools
@@ -48,7 +50,7 @@ jobs:
 
       - name: Compile
         run: |
-          haxelib run lime build android -release -DANDROID_STL=c++_static
+          haxelib run lime build android -release
         env:
           ANDROID_SDK: ${{ env.ANDROID_HOME }}
           ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_LATEST_HOME }}
