@@ -36,7 +36,9 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-addons --quiet
           haxelib install android6permissions --quiet
-          haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git --quiet
+          haxelib git hxcpp https://github.com --quiet
+          cd ~/haxelib/hxcpp/git/tools/hxcpp
+          haxe compile.hxml
 
       - name: Configure Lime Android Tools
         run: |
