@@ -52,7 +52,7 @@ jobs:
 
       - name: Compile
         run: |
-          lime build android -release
+          haxelib lime build android -release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
