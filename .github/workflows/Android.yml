@@ -33,7 +33,6 @@ jobs:
           if [ -f haxelib.json ]; then
             haxelib install haxelib.json --always
           else
-          haxelib setup C:\haxelib
           haxelib install lime 7.9.0 --quiet
           haxelib install openfl 9.1.0 --quiet
           haxelib install flixel 4.11.0 --quiet
@@ -45,6 +44,10 @@ jobs:
           haxelib set lime 7.9.0
           haxelib set openfl 9.1.0
           fi
+
+      - name: Expose Haxelib Binaries to PATH
+        run: |
+          echo "$HOME/.haxelib/bin" >> $GITHUB_PATH
 
       - name: Compile
         run: |
