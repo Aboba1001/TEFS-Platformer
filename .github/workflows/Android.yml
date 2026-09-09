@@ -2,9 +2,9 @@ name: Android Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build-android:
@@ -19,27 +19,30 @@ jobs:
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '11' 
+          distribution: temurin
+          java-version: '11'
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
         with:
           haxe-version: '4.3.6'
 
-      - name: Install Haxelib dependencies
+      - name: Setup Haxelib
         run: |
           haxelib setup ~/haxelib
+
+      - name: Install Haxelib dependencies
+        run: |
           haxelib install lime --quiet
           haxelib install openfl --quiet
           haxelib install flixel --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-addons --quiet
           haxelib install android6permissions --quiet
-          haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git --
-          echo "}" >> ~/haxelib/hxcpp/git/src/hx/AndroidCompat.cpp
-          cd ~/haxelib/hxcpp/git/tools/hxcpp
-          haxe compile.hxml
+
+          # Install hxcpp normally.
+          # DO NOT modify AndroidCompat.cpp.
+          haxelib install hxcpp --quiet
 
       - name: Configure Lime Android Tools
         run: |
@@ -48,15 +51,18 @@ jobs:
           haxelib run lime config JAVA_HOME "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
-      - name: Compile APK
+      - name: Build Android APK
         run: |
           haxelib run lime build android -release -Dandroid64 -verbose
+
+      - name: Find APK
+        run: |
+          find export -type f -name "*.apk" -print
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
           path: |
-            export/android/bin/app/build/outputs/apk/release/*.apk
-            export/release/android/bin/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+            export/**/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
