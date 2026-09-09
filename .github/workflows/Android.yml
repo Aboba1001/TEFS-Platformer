@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11' # Use '11' for older Gradle/NDK setups, or '17' for modern Gradle builds
+          java-version: '11' 
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
@@ -35,13 +35,11 @@ jobs:
           haxelib install flixel --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-addons --quiet
-          haxelib install hxcpp --quiet
           haxelib install android6permissions --quiet
+          haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git --quiet
 
       - name: Configure Lime Android Tools
         run: |
-          # Automatically find any valid pre-installed NDK version on the GitHub runner if LATEST is too new
-          # If your project strictly needs a specific legacy NDK, you can replace $ANDROID_NDK_LATEST_HOME with "$ANDROID_HOME/ndk-bundle"
           haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
           haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_NDK_LATEST_HOME"
           haxelib run lime config JAVA_HOME "$JAVA_HOME"
