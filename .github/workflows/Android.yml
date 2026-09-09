@@ -20,12 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17' # Use '11' if you are using an older version of Flixel/Lime
-
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: '21.4.7075529'
+          java-version: '11' # Use '11' for older Gradle/NDK setups, or '17' for modern Gradle builds
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
@@ -45,14 +40,16 @@ jobs:
 
       - name: Configure Lime Android Tools
         run: |
+          # Automatically find any valid pre-installed NDK version on the GitHub runner if LATEST is too new
+          # If your project strictly needs a specific legacy NDK, you can replace $ANDROID_NDK_LATEST_HOME with "$ANDROID_HOME/ndk-bundle"
           haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
-          haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_HOME/ndk/21.4.7075529"
+          haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_NDK_LATEST_HOME"
           haxelib run lime config JAVA_HOME "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
       - name: Compile APK
         run: |
-          haxelib run lime build android -release -Dandroid64
+          haxelib run lime build android -release -Dandroid64 -verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
