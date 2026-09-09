@@ -3,61 +3,32 @@ name: Android Build
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
-  build-android:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Haxe
-        uses: krdlab/setup-haxe@v2
+      - uses: krdlab/setup-haxe@v2
         with:
           haxe-version: '4.2.5'
 
-      - name: Install Haxelib
-        run: |
-          haxelib setup ~/haxelib
-          if [ -f haxelib.json ]; then
-            haxelib install haxelib.json --always
-          else
-          haxelib install lime 7.9.0 --quiet
-          haxelib install openfl 9.1.0 --quiet
-          haxelib install flixel 4.11.0 --quiet
-          haxelib install flixel-ui 2.5.0 --quiet
-          haxelib install flixel-addons 3.0.2 --quiet
-          haxelib install hxcpp --quiet
-          haxelib install android6permissions 0.2.1 --quiet
-          haxelib set flixel 4.11.0
-          haxelib set lime 7.9.0
-          haxelib set openfl 9.1.0
-          fi
-
-      - name: Expose Haxelib Binaries to PATH
-        run: |
-          echo "$HOME/.haxelib/bin" >> $GITHUB_PATH
-
       - name: Compile
         run: |
+          haxelib setup ~/haxelib
+          haxelib install haxelib.json --always
+          echo "$HOME/.haxelib/bin" >> $GITHUB_PATH
           lime build android -release
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
-          path: |
-            export/android/bin/app/build/outputs/apk/release/*.apk
-            export/release/android/bin/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          path: export/**/build/outputs/apk/release/*.apk

@@ -1,0 +1,18 @@
+{
+  "name": "my-game",
+  "url": "",
+  "license": "MIT",
+  "app": {
+    "file": "Main"
+  },
+  "classPath": "source",
+  "dependencies": {
+    "lime": "7.9.0",
+    "openfl": "9.1.0",
+    "flixel": "4.11.0",
+    "flixel-ui": "2.5.0",
+    "flixel-addons": "3.0.2",
+    "hxcpp": "",
+    "android6permissions": "0.2.1"
+  }
+}
