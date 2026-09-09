@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-android:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -20,9 +20,9 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '17' # Use '11' if you are using an older version of Flixel/Lime
 
-      - name: Setup Android NDK r21e
+      - name: Setup Android SDK & NDK
         uses: android-actions/setup-android@v3
         with:
           ndk-version: '21.4.7075529'
@@ -32,9 +32,9 @@ jobs:
         with:
           haxe-version: '4.3.6'
 
-      - name: Install Haxelib
+      - name: Install Haxelib dependencies
         run: |
-          haxelib setup C:\haxelib
+          haxelib setup ~/haxelib
           haxelib install lime --quiet
           haxelib install openfl --quiet
           haxelib install flixel --quiet
@@ -42,25 +42,17 @@ jobs:
           haxelib install flixel-addons --quiet
           haxelib install hxcpp --quiet
           haxelib install android6permissions --quiet
-        shell: cmd
 
-      - name: Setup Lime and Android Tools
+      - name: Configure Lime Android Tools
         run: |
-          haxelib run lime setup
-          haxelib run lime config ANDROID_SDK %ANDROID_HOME%
-          haxelib run lime config ANDROID_NDK_ROOT %ANDROID_HOME%\ndk\21.4.7075529
-          haxelib run lime config JAVA_HOME %JAVA_HOME%
+          haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
+          haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_HOME/ndk/21.4.7075529"
+          haxelib run lime config JAVA_HOME "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
-        shell: cmd
 
-      - name: Compile
+      - name: Compile APK
         run: |
           haxelib run lime build android -release -Dandroid64
-        env:
-          ANDROID_SDK: ${{ env.ANDROID_HOME }}
-          ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}\ndk\21.4.7075529
-          JAVA_HOME: ${{ env.JAVA_HOME }}
-        shell: cmd
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
