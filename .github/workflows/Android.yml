@@ -10,6 +10,9 @@ jobs:
   build-android:
     runs-on: ubuntu-22.04
 
+    env:
+      ANDROID_NDK_VERSION: "21.4.7075529"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,12 +23,12 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v2
         with:
-          haxe-version: '4.3.6'
+          haxe-version: "4.3.6"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -33,9 +36,14 @@ jobs:
       - name: Install Android SDK and NDK
         run: |
           sdkmanager "platform-tools"
-          sdkmanager "platforms;android-34"
-          sdkmanager "build-tools;34.0.0"
-          sdkmanager "ndk;25.2.9519653"
+          sdkmanager "platforms;android-30"
+          sdkmanager "build-tools;30.0.3"
+          sdkmanager "ndk;${ANDROID_NDK_VERSION}"
+
+      - name: Configure Android environment
+        run: |
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
 
       - name: Setup Haxelib
         run: |
@@ -51,37 +59,16 @@ jobs:
           haxelib install android6permissions --quiet
           haxelib install hxcpp --quiet
 
-      - name: Configure Lime Android Tools
+      - name: Configure Lime
         run: |
-          export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/25.2.9519653"
-
           haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
           haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_NDK_ROOT"
           haxelib run lime config JAVA_HOME "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
-      - name: Verify Android Toolchain
-        run: |
-          echo "Java:"
-          java -version
-
-          echo "Haxe:"
-          haxe --version
-
-          echo "Android SDK:"
-          echo "$ANDROID_HOME"
-
-          echo "Android NDK:"
-          echo "$ANDROID_NDK_ROOT"
-
-          echo "NDK version:"
-          cat "$ANDROID_NDK_ROOT/source.properties"
-
       - name: Build Android APK
         run: |
-          export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/25.2.9519653"
-
-          haxelib run lime build android -release -Dandroid64 -verbose
+          haxelib run lime build android -release -verbose
 
       - name: Find APK
         run: |
@@ -92,5 +79,5 @@ jobs:
         with:
           name: android-release-apk
           path: |
-            export/**/app/build/outputs/apk/release/*.apk
+            export/**/*.apk
           if-no-files-found: error
